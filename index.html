@@ -12,56 +12,89 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: var(--bg-corporate); color: var(--text-main); font-family: 'Montserrat', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .dashboard-container { background: var(--panel-bg); border: 1px solid var(--border-line); border-radius: 12px; width: 100%; max-width: 500px; padding: 40px 30px; text-align: center; }
-        .upload-zone { border: 2px dashed var(--border-line); border-radius: 8px; padding: 40px 20px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
-        .btn-submit { width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         
-        /* Spinner */
-        .spinner { display: none; width: 30px; height: 30px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin: 20px auto; }
+        /* Ajuste de diseño Premium */
+        h1 { margin-bottom: 25px; font-weight: 600; }
+        
+        .upload-zone { border: 2px dashed var(--border-line); border-radius: 8px; padding: 40px 20px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        .upload-zone:hover { border-color: var(--accent-blue); }
+        .btn-submit { width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-submit:disabled { background: #374151; cursor: not-allowed; }
+        
+        /* Spinner profesional */
+        .spinner { display: none; width: 40px; height: 40px; border: 4px solid rgba(59, 130, 246, 0.3); border-radius: 50%; border-top-color: var(--accent-blue); animation: spin 1s ease-in-out infinite; margin: 20px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        #statusMsg { margin-top: 20px; font-size: 0.9rem; color: var(--accent-blue); }
+        #statusMsg { margin-top: 20px; font-size: 0.9rem; color: var(--accent-blue); line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
         <h1>Captura Automática</h1>
+
         <div class="upload-zone" id="dropZone">
             <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; margin-bottom: 15px;"></i>
             <p>Toca para tomar foto del ticket</p>
             <input type="file" id="fileInput" accept="image/*" style="display: none;">
         </div>
+        
         <div class="spinner" id="spinner"></div>
         <button id="uploadBtn" class="btn-submit" disabled>PROCESAR DOCUMENTO</button>
+
         <div id="statusMsg"></div>
     </div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzifuu1qNextPTyKnYyZELUcwdx8SHZf3kR-5RAuh41XftqiMAB5VaIHOpvhJmrly57kA/exec";
-        const fileInput = document.getElementById('fileInput'), uploadBtn = document.getElementById('uploadBtn'), spinner = document.getElementById('spinner'), statusMsg = document.getElementById('statusMsg');
+        
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const spinner = document.getElementById('spinner');
+        const statusMsg = document.getElementById('statusMsg');
+        const dropZone = document.getElementById('dropZone');
 
-        fileInput.addEventListener('change', () => uploadBtn.disabled = false);
-        document.getElementById('dropZone').addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => { if(fileInput.files.length > 0) uploadBtn.disabled = false; });
 
         uploadBtn.addEventListener('click', async () => {
             const file = fileInput.files[0];
-            uploadBtn.style.display = 'none'; spinner.style.display = 'block';
-            statusMsg.textContent = "Extrayendo datos de la imagen...";
+            uploadBtn.style.display = 'none';
+            spinner.style.display = 'block';
+            statusMsg.textContent = "Analizando ticket...";
             
             try {
                 const { data: { text } } = await Tesseract.recognize(file, 'spa');
+                
+                // Extractor RFC
                 const rfcMatch = text.match(/[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}/);
-                const totalMatch = text.match(/TOTAL\D*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)/i);
+                
+                // Extractor Total optimizado para tickets complejos
+                const totalMatch = text.match(/TOTAL[\s\S]*?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2}))/i);
 
-                const ticketData = { rfc: rfcMatch ? rfcMatch[0] : "NO_DETECTADO", total: totalMatch ? totalMatch[1].replace(',', '') : "0.00" };
+                const ticketData = {
+                    rfc: rfcMatch ? rfcMatch[0] : "NO_DETECTADO",
+                    total: totalMatch ? totalMatch[1].replace(',', '') : "0.00"
+                };
 
-                if (ticketData.rfc === "NO_DETECTADO") throw new Error("RFC no detectado");
+                if (ticketData.rfc === "NO_DETECTADO") {
+                    throw new Error("RFC no detectado");
+                }
 
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ticketData) });
-                statusMsg.innerHTML = `✅ <b>Éxito:</b> RFC ${ticketData.rfc} procesado.`;
-            } catch (e) { statusMsg.textContent = "❌ Error: Documento ilegible o sin conexión."; }
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ticketData)
+                });
+                
+                statusMsg.innerHTML = `✅ <b>Éxito:</b><br>RFC: ${ticketData.rfc}<br>Total: $${ticketData.total}<br>Enviado a la matriz.`;
+            } catch (error) {
+                statusMsg.textContent = "❌ Error: Documento ilegible. Intenta con mejor luz.";
+            }
             
-            spinner.style.display = 'none'; uploadBtn.style.display = 'block'; uploadBtn.disabled = false;
+            spinner.style.display = 'none';
+            uploadBtn.style.display = 'block';
         });
     </script>
 </body>
