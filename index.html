@@ -138,11 +138,14 @@
 <div class="dashboard-container">
     <h1>Captura Automática</h1>
 
-    <div class="upload-zone" id="dropZone">
+    <div class="upload-zone" id="dropZone" style="position:relative;">
         <i class="fa-solid fa-cloud-arrow-up"></i>
-        <p>Toca para tomar foto del ticket</p>
+        <p>Toca para elegir foto o imagen del ticket</p>
         <img id="previewImg" alt="Vista previa">
-        <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none;">
+        <!-- Input como overlay: cubre todo el dropzone, fuerza el selector de archivos nativo con galería + cámara en Android -->
+        <input type="file" id="fileInput"
+               accept="image/jpeg,image/png,image/webp,image/gif,image/heic"
+               style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:10;">
     </div>
 
     <div class="img-controls" id="imgControls">
@@ -178,7 +181,7 @@
     const ocrDebug     = document.getElementById('ocrDebug');
 
     // ─── Vista previa ──────────────────────────────────────────────
-    dropZone.addEventListener('click', () => fileInput.click());
+    // El input cubre el dropzone como overlay, no necesita click handler
     fileInput.addEventListener('change', () => {
         if (!fileInput.files.length) return;
         previewImg.src = URL.createObjectURL(fileInput.files[0]);
