@@ -8,347 +8,74 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src='https://unpkg.com/tesseract.js@v4/dist/tesseract.min.js'></script>
     <style>
-        :root {
-            --bg-corporate: #0a0e17;
-            --panel-bg: #111827;
-            --accent-blue: #3b82f6;
-            --text-main: #f3f4f6;
-            --border-line: #374151;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-        }
+        :root { --bg-corporate: #0a0e17; --panel-bg: #111827; --accent-blue: #3b82f6; --text-main: #f3f4f6; --border-line: #374151; --success: #10b981; --error: #ef4444; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background-color: var(--bg-corporate);
-            color: var(--text-main);
-            font-family: 'Montserrat', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .dashboard-container {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-line);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            padding: 40px 30px;
-            text-align: center;
-        }
+        body { background-color: var(--bg-corporate); color: var(--text-main); font-family: 'Montserrat', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .dashboard-container { background: var(--panel-bg); border: 1px solid var(--border-line); border-radius: 12px; width: 100%; max-width: 500px; padding: 40px 30px; text-align: center; }
         h1 { margin-bottom: 25px; font-weight: 600; }
-        .upload-zone {
-            border: 2px dashed var(--border-line);
-            border-radius: 8px;
-            padding: 30px 20px;
-            cursor: pointer;
-            margin-bottom: 14px;
-            transition: 0.3s;
-        }
-        .upload-zone:hover { border-color: var(--accent-blue); }
-        .upload-zone i { font-size: 2rem; margin-bottom: 12px; display: block; }
-        #previewImg {
-            display: none;
-            width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-            border-radius: 6px;
-            margin-top: 12px;
-        }
-        .img-controls {
-            display: none;
-            background: #1e293b;
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 14px;
-            text-align: left;
-        }
-        .img-controls label {
-            font-size: 0.78rem;
-            color: #94a3b8;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-        .img-controls input[type=range] {
-            width: 100%;
-            accent-color: var(--accent-blue);
-            margin-bottom: 10px;
-        }
-        .img-controls .hint { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
-        .btn-submit {
-            width: 100%;
-            background: var(--accent-blue);
-            color: #fff;
-            border: none;
-            padding: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
-            font-size: 0.95rem;
-            letter-spacing: 0.04em;
-        }
+        .upload-zone { border: 2px dashed var(--border-line); border-radius: 8px; padding: 30px 20px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; position: relative; }
+        .btn-submit { width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 15px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
         .btn-submit:disabled { background: #374151; cursor: not-allowed; }
-        .btn-submit:not(:disabled):hover { background: #2563eb; }
-        .spinner {
-            display: none;
-            width: 40px; height: 40px;
-            border: 4px solid rgba(59,130,246,0.3);
-            border-radius: 50%;
-            border-top-color: var(--accent-blue);
-            animation: spin 1s ease-in-out infinite;
-            margin: 20px auto;
-        }
+        .spinner { display: none; width: 40px; height: 40px; border: 4px solid rgba(59,130,246,0.3); border-radius: 50%; border-top-color: var(--accent-blue); animation: spin 1s ease-in-out infinite; margin: 20px auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        #statusMsg { margin-top: 18px; font-size: 0.88rem; line-height: 1.6; }
-        #statusMsg.ok   { color: var(--success); }
-        #statusMsg.warn { color: var(--warning); }
-        #statusMsg.err  { color: var(--error); }
-        #ocrDebug {
-            display: none;
-            margin-top: 14px;
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            border-radius: 6px;
-            padding: 10px;
-            text-align: left;
-            font-size: 0.72rem;
-            color: #64748b;
-            max-height: 120px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        #toggleDebug {
-            display: none;
-            margin-top: 10px;
-            background: none;
-            border: none;
-            color: #475569;
-            font-size: 0.75rem;
-            cursor: pointer;
-            text-decoration: underline;
-        }
+        #statusMsg { margin-top: 20px; font-size: 0.9rem; line-height: 1.5; }
     </style>
 </head>
 <body>
-<div class="dashboard-container">
-    <h1>Captura Automática</h1>
 
-    <div class="upload-zone" id="dropZone" style="position:relative;">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        <p>Toca para elegir foto o imagen del ticket</p>
-        <img id="previewImg" alt="Vista previa">
-        <!-- Input como overlay: cubre todo el dropzone, fuerza el selector de archivos nativo con galería + cámara en Android -->
-        <input type="file" id="fileInput"
-               accept="image/jpeg,image/png,image/webp,image/gif,image/heic"
-               style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:10;">
+    <div class="dashboard-container">
+        <h1>Captura Automática</h1>
+        <div class="upload-zone" id="dropZone">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; margin-bottom: 12px; display: block;"></i>
+            <p>Toca para tomar foto del ticket</p>
+            <input type="file" id="fileInput" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+        </div>
+        
+        <div class="spinner" id="spinner"></div>
+        <button id="uploadBtn" class="btn-submit" disabled>PROCESAR DOCUMENTO</button>
+        <div id="statusMsg"></div>
     </div>
 
-    <div class="img-controls" id="imgControls">
-        <label>Brillo <span id="brightnessVal">100%</span></label>
-        <input type="range" id="brightness" min="60" max="200" value="100">
-        <label>Contraste <span id="contrastVal">100%</span></label>
-        <input type="range" id="contrast" min="80" max="300" value="100">
-        <p class="hint">💡 Si el ticket es muy claro, sube el contraste. Si es oscuro, sube el brillo.</p>
-    </div>
+    <script>
+        // ─── URL actualizada con el nuevo despliegue ───────────────────
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxPyNoesdUBoRJcug-aeCiR_0Az7TIdXFPulzho0QtCRxhqFGA3HeQpIY9VQiavpSGb/exec";
 
-    <div class="spinner" id="spinner"></div>
-    <button id="uploadBtn" class="btn-submit" disabled>PROCESAR DOCUMENTO</button>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const spinner   = document.getElementById('spinner');
+        const statusMsg = document.getElementById('statusMsg');
 
-    <div id="statusMsg"></div>
-    <button id="toggleDebug">Ver texto detectado por OCR</button>
-    <div id="ocrDebug"></div>
-</div>
+        fileInput.addEventListener('change', () => { if(fileInput.files.length > 0) uploadBtn.disabled = false; });
 
-<script>
-    // ─── URL del Google Apps Script (no cambiar) ───────────────────
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4fwR39SePJ0D6eUYhRcwnUPPsBsPxvIMH_AZq_FhE2oQX-OqHxtHP-EdBy9wjnaYT/exec";
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            uploadBtn.style.display = 'none';
+            spinner.style.display = 'block';
+            statusMsg.textContent = "Analizando y enviando...";
+            
+            try {
+                const { data: { text } } = await Tesseract.recognize(file, 'spa');
+                
+                const rfcMatch = text.match(/[A-Z&Ñ]{3,4}\s?[0-9]{6}\s?[A-Z0-9]{3}/i);
+                const totalMatch = text.match(/(?:TOTAL|IMPORTE)[^0-9$]*\$?\s*([0-9]{1,3}(?:[,\s]?[0-9]{3})*[.,][0-9]{2})/i);
 
-    const fileInput    = document.getElementById('fileInput');
-    const uploadBtn    = document.getElementById('uploadBtn');
-    const spinner      = document.getElementById('spinner');
-    const statusMsg    = document.getElementById('statusMsg');
-    const dropZone     = document.getElementById('dropZone');
-    const previewImg   = document.getElementById('previewImg');
-    const imgControls  = document.getElementById('imgControls');
-    const brightnessIn = document.getElementById('brightness');
-    const contrastIn   = document.getElementById('contrast');
-    const toggleDebug  = document.getElementById('toggleDebug');
-    const ocrDebug     = document.getElementById('ocrDebug');
+                const data = {
+                    rfc: rfcMatch ? rfcMatch[0].replace(/\s/g, '') : "NO_DETECTADO",
+                    total: totalMatch ? totalMatch[1].replace(/[\s,]/g, '') : "0.00",
+                    fecha: new Date().toLocaleDateString('es-MX')
+                };
 
-    // ─── Vista previa ──────────────────────────────────────────────
-    // El input cubre el dropzone como overlay, no necesita click handler
-    fileInput.addEventListener('change', () => {
-        if (!fileInput.files.length) return;
-        previewImg.src = URL.createObjectURL(fileInput.files[0]);
-        previewImg.style.display = 'block';
-        imgControls.style.display = 'block';
-        uploadBtn.disabled = false;
-        statusMsg.textContent = '';
-        statusMsg.className = '';
-        toggleDebug.style.display = 'none';
-        ocrDebug.style.display = 'none';
-    });
+                const url = `${WEB_APP_URL}?rfc=${encodeURIComponent(data.rfc)}&total=${encodeURIComponent(data.total)}&fecha=${encodeURIComponent(data.fecha)}`;
+                await fetch(url);
 
-    brightnessIn.addEventListener('input', () => {
-        document.getElementById('brightnessVal').textContent = brightnessIn.value + '%';
-    });
-    contrastIn.addEventListener('input', () => {
-        document.getElementById('contrastVal').textContent = contrastIn.value + '%';
-    });
-    toggleDebug.addEventListener('click', () => {
-        ocrDebug.style.display = ocrDebug.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // ─── Preprocesamiento de imagen ────────────────────────────────
-    function preprocessImage(file, brightness, contrast) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                const scale = Math.max(1, Math.min(3, 1800 / Math.max(img.width, img.height)));
-                const canvas = document.createElement('canvas');
-                canvas.width  = img.width  * scale;
-                canvas.height = img.height * scale;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) grayscale(100%)`;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                ctx.filter = 'none';
-                canvas.toBlob(resolve, 'image/png');
-            };
-            img.src = URL.createObjectURL(file);
-        });
-    }
-
-    // ─── Extracción de datos del ticket ───────────────────────────
-    function extractTicketData(rawText) {
-        const text = rawText.toUpperCase();
-        const rfcRegex = /[A-Z&Ñ]{3,4}[\s\-]?[0-9]{6}[\s\-]?[A-Z0-9]{2,3}/g;
-        const rfcMatches = text.match(rfcRegex) || [];
-        const rfc = rfcMatches.length > 0 ? rfcMatches[0].replace(/[\s\-]/g, '') : null;
-
-        const totalRegex = /(?:TOTAL|IMPORTE|COBRAR|PAGAR|MONTO)[^0-9$]*\$?\s*([0-9]{1,3}(?:[,\s]?[0-9]{3})*(?:[.,][0-9]{1,2})?)/i;
-        const totalMatch = rawText.match(totalRegex);
-        let total = null;
-        if (totalMatch) {
-            total = totalMatch[1].replace(/\s/g, '').replace(/,([0-9]{1,2})$/, '.$1');
-        }
-
-        const fechaMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-        const fecha = fechaMatch ? fechaMatch[0] : null;
-
-        return { rfc, total, fecha };
-    }
-
-    // ─── Envío a Google Sheets via GET (solución CORS) ────────────
-    //
-    //  ¿POR QUÉ GET Y NO POST?
-    //  El navegador móvil con mode:'no-cors' bloquea el body de
-    //  los POST silenciosamente → Google Apps Script recibe un
-    //  objeto vacío y no escribe nada en el Sheet.
-    //  Con GET + parámetros en la URL, no-cors funciona
-    //  perfectamente y el script los recibe con e.parameter.
-    //
-    function enviarASheets(ticketData) {
-        const params = new URLSearchParams({
-            rfc:   ticketData.rfc,
-            total: ticketData.total,
-            fecha: ticketData.fecha,
-        });
-        const url = `${WEB_APP_URL}?${params.toString()}`;
-
-        // Técnica JSONP-like: imagen invisible para evitar bloqueos CORS
-        // en navegadores Android/iOS que bloquean fetch incluso en no-cors
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            const timeout = setTimeout(() => {
-                // Si no carga en 8s igual puede haber llegado, no fallamos
-                resolve('timeout_ok');
-            }, 8000);
-
-            img.onload = img.onerror = () => {
-                clearTimeout(timeout);
-                resolve('enviado');
-            };
-
-            img.src = url;
-        });
-    }
-
-    // ─── Procesamiento principal ───────────────────────────────────
-    uploadBtn.addEventListener('click', async () => {
-        const file = fileInput.files[0];
-        if (!file) return;
-
-        uploadBtn.style.display = 'none';
-        spinner.style.display   = 'block';
-        statusMsg.className     = '';
-        statusMsg.innerHTML     = '⏳ Mejorando imagen...';
-        toggleDebug.style.display = 'none';
-        ocrDebug.style.display    = 'none';
-
-        try {
-            // 1. Preprocesar
-            const processedBlob = await preprocessImage(
-                file,
-                parseInt(brightnessIn.value),
-                parseInt(contrastIn.value)
-            );
-
-            statusMsg.innerHTML = '🔍 Leyendo ticket con OCR...';
-
-            // 2. OCR
-            const { data } = await Tesseract.recognize(processedBlob, 'spa+eng', {
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,/$%&Ññ -:/',
-                preserve_interword_spaces: '1',
-            });
-
-            const rawText = data.text || '';
-            ocrDebug.textContent = rawText;
-            toggleDebug.style.display = 'inline';
-
-            // 3. Extraer datos
-            const { rfc, total, fecha } = extractTicketData(rawText);
-
-            const ticketData = {
-                rfc:   rfc   || 'NO_DETECTADO',
-                total: total || '0.00',
-                fecha: fecha || new Date().toLocaleDateString('es-MX'),
-            };
-
-            statusMsg.innerHTML = '📡 Enviando a la matriz...';
-
-            // 4. Enviar a Google Sheets (GET, sin problemas de CORS)
-            await enviarASheets(ticketData);
-
-            // 5. Resultado
-            const rfcDetectado = rfc ? `<b>${rfc}</b>` : '⚠️ No detectado';
-            const totalDetect  = total ? `$${total}` : '⚠️ No detectado';
-
-            if (!rfc && !total) {
-                statusMsg.className = 'warn';
-                statusMsg.innerHTML = `⚠️ Datos poco claros, pero se intentó el envío.<br>RFC: ${rfcDetectado}<br>Total: ${totalDetect}<br>Revisa el texto OCR.`;
-            } else if (!rfc) {
-                statusMsg.className = 'warn';
-                statusMsg.innerHTML = `✅ Enviado con advertencia.<br>RFC: ${rfcDetectado}<br>Total: ${totalDetect}`;
-            } else {
-                statusMsg.className = 'ok';
-                statusMsg.innerHTML = `✅ <b>Éxito</b><br>RFC: ${rfcDetectado}<br>Total: ${totalDetect}<br>Fecha: ${ticketData.fecha}`;
+                statusMsg.innerHTML = `<span style="color:var(--success)">✅ <b>Enviado a la matriz</b></span><br>RFC: ${data.rfc}<br>Total: $${data.total}`;
+            } catch (error) {
+                statusMsg.innerHTML = `<span style="color:var(--error)">❌ Error al procesar ticket.</span>`;
             }
-
-        } catch (error) {
-            statusMsg.className = 'err';
-            statusMsg.innerHTML = `❌ <b>Error:</b> ${error.message}<br><small>Ajusta brillo/contraste e intenta de nuevo.</small>`;
-        }
-
-        spinner.style.display   = 'none';
-        uploadBtn.style.display = 'block';
-    });
-</script>
+            
+            spinner.style.display = 'none';
+            uploadBtn.style.display = 'block';
+        });
+    </script>
 </body>
 </html>
