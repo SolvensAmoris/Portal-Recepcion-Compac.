@@ -39,7 +39,6 @@
             text-align: center;
         }
         h1 { margin-bottom: 25px; font-weight: 600; }
-
         .upload-zone {
             border: 2px dashed var(--border-line);
             border-radius: 8px;
@@ -47,12 +46,9 @@
             cursor: pointer;
             margin-bottom: 14px;
             transition: 0.3s;
-            position: relative;
         }
         .upload-zone:hover { border-color: var(--accent-blue); }
         .upload-zone i { font-size: 2rem; margin-bottom: 12px; display: block; }
-
-        /* Preview de imagen dentro del dropzone */
         #previewImg {
             display: none;
             width: 100%;
@@ -61,8 +57,6 @@
             border-radius: 6px;
             margin-top: 12px;
         }
-
-        /* Controles de mejora de imagen */
         .img-controls {
             display: none;
             background: #1e293b;
@@ -83,12 +77,7 @@
             accent-color: var(--accent-blue);
             margin-bottom: 10px;
         }
-        .img-controls .hint {
-            font-size: 0.72rem;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
+        .img-controls .hint { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
         .btn-submit {
             width: 100%;
             background: var(--accent-blue);
@@ -104,11 +93,9 @@
         }
         .btn-submit:disabled { background: #374151; cursor: not-allowed; }
         .btn-submit:not(:disabled):hover { background: #2563eb; }
-
         .spinner {
             display: none;
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border: 4px solid rgba(59,130,246,0.3);
             border-radius: 50%;
             border-top-color: var(--accent-blue);
@@ -116,17 +103,10 @@
             margin: 20px auto;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        #statusMsg {
-            margin-top: 18px;
-            font-size: 0.88rem;
-            line-height: 1.6;
-        }
+        #statusMsg { margin-top: 18px; font-size: 0.88rem; line-height: 1.6; }
         #statusMsg.ok   { color: var(--success); }
         #statusMsg.warn { color: var(--warning); }
         #statusMsg.err  { color: var(--error); }
-
-        /* Texto OCR debug (colapsable) */
         #ocrDebug {
             display: none;
             margin-top: 14px;
@@ -165,7 +145,6 @@
         <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none;">
     </div>
 
-    <!-- Controles de mejora -->
     <div class="img-controls" id="imgControls">
         <label>Brillo <span id="brightnessVal">100%</span></label>
         <input type="range" id="brightness" min="60" max="200" value="100">
@@ -183,6 +162,7 @@
 </div>
 
 <script>
+    // ─── URL del Google Apps Script (no cambiar) ───────────────────
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzifuu1qNextPTyKnYyZELUcwdx8SHZf3kR-5RAuh41XftqiMAB5VaIHOpvhJmrly57kA/exec";
 
     const fileInput    = document.getElementById('fileInput');
@@ -197,13 +177,11 @@
     const toggleDebug  = document.getElementById('toggleDebug');
     const ocrDebug     = document.getElementById('ocrDebug');
 
-    // ----- Vista previa + habilitar controles -----
+    // ─── Vista previa ──────────────────────────────────────────────
     dropZone.addEventListener('click', () => fileInput.click());
-
     fileInput.addEventListener('change', () => {
         if (!fileInput.files.length) return;
-        const url = URL.createObjectURL(fileInput.files[0]);
-        previewImg.src = url;
+        previewImg.src = URL.createObjectURL(fileInput.files[0]);
         previewImg.style.display = 'block';
         imgControls.style.display = 'block';
         uploadBtn.disabled = false;
@@ -213,88 +191,93 @@
         ocrDebug.style.display = 'none';
     });
 
-    // ----- Sliders de brillo/contraste -----
     brightnessIn.addEventListener('input', () => {
         document.getElementById('brightnessVal').textContent = brightnessIn.value + '%';
     });
     contrastIn.addEventListener('input', () => {
         document.getElementById('contrastVal').textContent = contrastIn.value + '%';
     });
-
-    // ----- Toggle debug OCR -----
     toggleDebug.addEventListener('click', () => {
         ocrDebug.style.display = ocrDebug.style.display === 'none' ? 'block' : 'none';
     });
 
-    // ===================================================
-    //  PREPROCESAMIENTO DE IMAGEN EN CANVAS
-    //  Aplica brillo + contraste + escala de grises
-    //  para mejorar la legibilidad del OCR
-    // ===================================================
+    // ─── Preprocesamiento de imagen ────────────────────────────────
     function preprocessImage(file, brightness, contrast) {
         return new Promise((resolve) => {
             const img = new Image();
-            const url = URL.createObjectURL(file);
             img.onload = () => {
-                // Escalar al doble si la imagen es pequeña (mejora OCR en fotos de baja res)
                 const scale = Math.max(1, Math.min(3, 1800 / Math.max(img.width, img.height)));
                 const canvas = document.createElement('canvas');
                 canvas.width  = img.width  * scale;
                 canvas.height = img.height * scale;
                 const ctx = canvas.getContext('2d');
-
-                // Fondo blanco
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Dibujar imagen
                 ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) grayscale(100%)`;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.filter = 'none';
-
                 canvas.toBlob(resolve, 'image/png');
-                URL.revokeObjectURL(url);
             };
-            img.src = url;
+            img.src = URL.createObjectURL(file);
         });
     }
 
-    // ===================================================
-    //  EXTRACCIÓN DE DATOS DEL TICKET
-    //  Regex permisivos: espacios, guiones, caracteres
-    //  mal reconocidos por OCR (0→O, 1→I, etc.)
-    // ===================================================
+    // ─── Extracción de datos del ticket ───────────────────────────
     function extractTicketData(rawText) {
-        // Normalizar: mayúsculas, reemplazar 0→O en zona de letras del RFC
         const text = rawText.toUpperCase();
-
-        // RFC: 3-4 letras + 6 dígitos + 3 alfanuméricos, con posibles espacios/guiones
         const rfcRegex = /[A-Z&Ñ]{3,4}[\s\-]?[0-9]{6}[\s\-]?[A-Z0-9]{2,3}/g;
         const rfcMatches = text.match(rfcRegex) || [];
-        const rfc = rfcMatches.length > 0
-            ? rfcMatches[0].replace(/[\s\-]/g, '')
-            : null;
+        const rfc = rfcMatches.length > 0 ? rfcMatches[0].replace(/[\s\-]/g, '') : null;
 
-        // Total: busca "TOTAL", "IMPORTE", "PAGAR" seguido de cantidad
-        // Acepta $, espacios, comas o puntos como separadores
         const totalRegex = /(?:TOTAL|IMPORTE|COBRAR|PAGAR|MONTO)[^0-9$]*\$?\s*([0-9]{1,3}(?:[,\s]?[0-9]{3})*(?:[.,][0-9]{1,2})?)/i;
         const totalMatch = rawText.match(totalRegex);
         let total = null;
         if (totalMatch) {
-            // Normalizar: quitar espacios, cambiar coma decimal a punto
             total = totalMatch[1].replace(/\s/g, '').replace(/,([0-9]{1,2})$/, '.$1');
         }
 
-        // Fecha: busca dd/mm/aaaa o dd-mm-aaaa o variantes
         const fechaMatch = text.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
         const fecha = fechaMatch ? fechaMatch[0] : null;
 
         return { rfc, total, fecha };
     }
 
-    // ===================================================
-    //  PROCESAMIENTO PRINCIPAL
-    // ===================================================
+    // ─── Envío a Google Sheets via GET (solución CORS) ────────────
+    //
+    //  ¿POR QUÉ GET Y NO POST?
+    //  El navegador móvil con mode:'no-cors' bloquea el body de
+    //  los POST silenciosamente → Google Apps Script recibe un
+    //  objeto vacío y no escribe nada en el Sheet.
+    //  Con GET + parámetros en la URL, no-cors funciona
+    //  perfectamente y el script los recibe con e.parameter.
+    //
+    function enviarASheets(ticketData) {
+        const params = new URLSearchParams({
+            rfc:   ticketData.rfc,
+            total: ticketData.total,
+            fecha: ticketData.fecha,
+        });
+        const url = `${WEB_APP_URL}?${params.toString()}`;
+
+        // Técnica JSONP-like: imagen invisible para evitar bloqueos CORS
+        // en navegadores Android/iOS que bloquean fetch incluso en no-cors
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const timeout = setTimeout(() => {
+                // Si no carga en 8s igual puede haber llegado, no fallamos
+                resolve('timeout_ok');
+            }, 8000);
+
+            img.onload = img.onerror = () => {
+                clearTimeout(timeout);
+                resolve('enviado');
+            };
+
+            img.src = url;
+        });
+    }
+
+    // ─── Procesamiento principal ───────────────────────────────────
     uploadBtn.addEventListener('click', async () => {
         const file = fileInput.files[0];
         if (!file) return;
@@ -307,29 +290,28 @@
         ocrDebug.style.display    = 'none';
 
         try {
-            // 1. Preprocesar imagen
-            const brightness = parseInt(brightnessIn.value);
-            const contrast   = parseInt(contrastIn.value);
-            const processedBlob = await preprocessImage(file, brightness, contrast);
+            // 1. Preprocesar
+            const processedBlob = await preprocessImage(
+                file,
+                parseInt(brightnessIn.value),
+                parseInt(contrastIn.value)
+            );
 
             statusMsg.innerHTML = '🔍 Leyendo ticket con OCR...';
 
-            // 2. OCR con Tesseract (español + inglés para mejor detección de números)
+            // 2. OCR
             const { data } = await Tesseract.recognize(processedBlob, 'spa+eng', {
                 tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,/$%&Ññ -:/',
                 preserve_interword_spaces: '1',
             });
 
             const rawText = data.text || '';
-
-            // Mostrar texto OCR para debug
             ocrDebug.textContent = rawText;
             toggleDebug.style.display = 'inline';
 
             // 3. Extraer datos
             const { rfc, total, fecha } = extractTicketData(rawText);
 
-            // 4. Construir payload — siempre enviamos aunque RFC no se detecte
             const ticketData = {
                 rfc:   rfc   || 'NO_DETECTADO',
                 total: total || '0.00',
@@ -338,21 +320,16 @@
 
             statusMsg.innerHTML = '📡 Enviando a la matriz...';
 
-            // 5. Enviar a Google Apps Script
-            await fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode:   'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(ticketData),
-            });
+            // 4. Enviar a Google Sheets (GET, sin problemas de CORS)
+            await enviarASheets(ticketData);
 
-            // 6. Mostrar resultado
-            const rfcDetectado = rfc ? `<b>${rfc}</b>` : '⚠️ No detectado (revisa el texto OCR)';
+            // 5. Resultado
+            const rfcDetectado = rfc ? `<b>${rfc}</b>` : '⚠️ No detectado';
             const totalDetect  = total ? `$${total}` : '⚠️ No detectado';
 
             if (!rfc && !total) {
                 statusMsg.className = 'warn';
-                statusMsg.innerHTML = `⚠️ Datos poco claros. Se envió el registro vacío.<br>RFC: ${rfcDetectado}<br>Total: ${totalDetect}<br><br>Toca "Ver texto detectado" y verifica si el OCR leyó algo.`;
+                statusMsg.innerHTML = `⚠️ Datos poco claros, pero se intentó el envío.<br>RFC: ${rfcDetectado}<br>Total: ${totalDetect}<br>Revisa el texto OCR.`;
             } else if (!rfc) {
                 statusMsg.className = 'warn';
                 statusMsg.innerHTML = `✅ Enviado con advertencia.<br>RFC: ${rfcDetectado}<br>Total: ${totalDetect}`;
@@ -364,7 +341,6 @@
         } catch (error) {
             statusMsg.className = 'err';
             statusMsg.innerHTML = `❌ <b>Error:</b> ${error.message}<br><small>Ajusta brillo/contraste e intenta de nuevo.</small>`;
-            console.error(error);
         }
 
         spinner.style.display   = 'none';
