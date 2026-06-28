@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Recepción Inteligente | Integración Compac</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-corporate: #0a0e17;
+            --panel-bg: #111827;
+            --accent-blue: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --text-main: #f3f4f6;
+            --text-dim: #9ca3af;
+            --border-line: #374151;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-corporate);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-line);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo-icon { font-size: 2.5rem; color: var(--accent-blue); margin-bottom: 10px; }
+        .title { font-size: 1.5rem; font-weight: 600; margin-bottom: 5px; letter-spacing: 1px; }
+        .subtitle { font-size: 0.85rem; color: var(--text-dim); }
+
+        /* Zona de Carga (Drag & Drop) */
+        .upload-zone {
+            border: 2px dashed var(--border-line);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(17, 24, 39, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-icon { font-size: 2rem; color: var(--text-dim); margin-bottom: 15px; transition: 0.3s; }
+        .upload-zone:hover .upload-icon { color: var(--accent-blue); }
+        .upload-text { font-size: 0.9rem; margin-bottom: 5px; }
+        .upload-subtext { font-size: 0.75rem; color: var(--text-dim); }
+        
+        #fileInput { display: none; }
+
+        /* Botón de Acción */
+        .btn-submit {
+            width: 100%;
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover { background: #2563eb; box-shadow: 0 0 15px var(--accent-glow); }
+        .btn-submit:disabled { background: var(--border-line); cursor: not-allowed; box-shadow: none; }
+
+        /* Panel de Resultados (Simulación de IA) */
+        .processing-panel { display: none; margin-top: 25px; text-align: left; }
+        .status-text { font-size: 0.85rem; color: var(--accent-blue); margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: #000;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-line);
+        }
+        .data-table th, .data-table td { padding: 12px; border-bottom: 1px solid var(--border-line); text-align: left; }
+        .data-table th { color: var(--text-dim); font-weight: 400; width: 40%; }
+        .data-table td { font-family: monospace; color: #fff; }
+        
+        .success-msg { color: #10b981; font-size: 0.85rem; margin-top: 15px; display: none; text-align: center; }
+
+        footer { text-align: center; margin-top: 30px; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="header">
+            <i class="fa-solid fa-microchip logo-icon"></i>
+            <h1 class="title">Captura Automática</h1>
+            <p class="subtitle">Motor OCR • Sincronización Compac</p>
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+            <p class="upload-text">Toca para tomar foto del ticket</p>
+            <p class="upload-subtext">JPG, PNG o PDF. Resolución máxima 5MB.</p>
+            <input type="file" id="fileInput" accept="image/*,application/pdf">
+        </div>
+
+        <button id="uploadBtn" class="btn-submit" disabled>
+            <i class="fa-solid fa-bolt"></i> PROCESAR DOCUMENTO
+        </button>
+
+        <div id="processingPanel" class="processing-panel">
+            <div class="status-text">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Extrayendo datos con Inteligencia Artificial...
+            </div>
+            <table class="data-table" id="dataTable" style="display: none;">
+                <tr><th>Emisor RFC</th><td id="resRfc">...</td></tr>
+                <tr><th>Fecha</th><td id="resDate">...</td></tr>
+                <tr><th>Subtotal</th><td id="resSub">...</td></tr>
+                <tr><th>IVA (16%)</th><td id="resIva">...</td></tr>
+                <tr><th>Total</th><td id="resTotal" style="color: var(--accent-blue); font-weight: bold;">...</td></tr>
+            </table>
+            <div id="successMsg" class="success-msg">
+                <i class="fa-solid fa-check"></i> Inyectado con éxito a la base de datos Compac
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>INFRAESTRUCTURA CREADA POR 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘</p>
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const processingPanel = document.getElementById('processingPanel');
+        const dataTable = document.getElementById('dataTable');
+        const successMsg = document.getElementById('successMsg');
+        const statusText = document.querySelector('.status-text');
+
+        // Manejo de carga de archivo
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                dropZone.style.borderColor = 'var(--accent-blue)';
+                document.querySelector('.upload-text').textContent = 'Archivo cargado: ' + e.target.files[0].name;
+                uploadBtn.disabled = false;
+            }
+        });
+
+        // Simulación de OCR e Inyección
+        uploadBtn.addEventListener('click', () => {
+            uploadBtn.style.display = 'none';
+            dropZone.style.display = 'none';
+            processingPanel.style.display = 'block';
+
+            // Simular tiempo de lectura de IA
+            setTimeout(() => {
+                statusText.innerHTML = '<i class="fa-solid fa-database"></i> Sincronizando con nodo local Compac...';
+                dataTable.style.display = 'table';
+                
+                // Datos simulados extraídos del ticket
+                document.getElementById('resRfc').textContent = 'XAXX010101000';
+                document.getElementById('resDate').textContent = '28/06/2026';
+                document.getElementById('resSub').textContent = '$ 1,000.00';
+                document.getElementById('resIva').textContent = '$ 160.00';
+                document.getElementById('resTotal').textContent = '$ 1,160.00';
+
+                // Simular inyección a la base de datos local
+                setTimeout(() => {
+                    statusText.style.display = 'none';
+                    successMsg.style.display = 'block';
+                }, 2000);
+
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
