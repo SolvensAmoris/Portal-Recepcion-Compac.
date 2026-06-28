@@ -92,7 +92,6 @@
             background: var(--gold-glow);
         }
 
-        /* Resultados */
         .result-panel {
             display: none;
             border-top: 1px solid var(--text-dim);
@@ -104,7 +103,8 @@
 
         .status-badge {
             display: inline-block;
-            background: var(--red-seal);
+            background: #0f5132;
+            border: 1px solid #198754;
             color: #fff;
             font-family: 'Cinzel', serif;
             font-size: 0.8rem;
@@ -112,8 +112,6 @@
             letter-spacing: 2px;
             margin-bottom: 15px;
         }
-
-        .status-badge.valid { background: #0f5132; border: 1px solid #198754; }
 
         .data-row { margin-bottom: 12px; }
         .data-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
@@ -128,7 +126,7 @@
         }
 
         footer { text-align: center; margin-top: 40px; }
-        .copyright { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; }
+        .copyright { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 1px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -152,7 +150,7 @@
         <div id="errorMsg" class="error-msg">❌ El folio ingresado no existe en los registros o ha sido revocado.</div>
 
         <div id="resultPanel" class="result-panel">
-            <div id="badgeStatus" class="status-badge valid">CREDENCIAL ACTIVA</div>
+            <div id="badgeStatus" class="status-badge">CREDENCIAL ACTIVA</div>
             
             <div class="data-row">
                 <span class="data-label">Investigador Certificado</span>
@@ -172,13 +170,11 @@
     </div>
 
     <footer>
-        <p class="copyright">© 2026 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘. INFRAESTRUCTURA DE VERIFICACIÓN.</p>
+        <p class="copyright">© 2026 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘. TODOS LOS DERECHOS RESERVADOS.</p>
+        <p class="copyright" style="font-size: 0.65rem; margin-top: 5px;">INFRAESTRUCTURA Y DISEÑO POR SOLVENS AMORIS.</p>
     </footer>
 
     <script>
-        // =========================================================
-        // ATENCIÓN: PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
-        // =========================================================
         const API_URL = "TU_URL_DE_GOOGLE_AQUI";
 
         const verifyBtn = document.getElementById('verifyBtn');
@@ -196,15 +192,13 @@
             verifyBtn.style.opacity = '0.5';
 
             try {
-                // Si la URL sigue siendo el texto de ejemplo, mostramos error para que recuerdes cambiarla
                 if(API_URL === "TU_URL_DE_GOOGLE_AQUI") {
-                    alert("Aún necesitas colocar tu URL de Google Apps Script en el código.");
+                    alert("Configuración pendiente: Inserte su URL de Google Apps Script.");
                     verifyBtn.textContent = 'INICIAR BÚSQUEDA EN LA MATRIZ';
                     verifyBtn.style.opacity = '1';
                     return;
                 }
 
-                // Llamada real a tu base de datos en Google Sheets
                 const response = await fetch(`${API_URL}?folio=${query}`);
                 const record = await response.json();
                 
@@ -225,7 +219,6 @@
             verifyBtn.style.opacity = '1';
         });
 
-        // Búsqueda rápida al presionar Enter en el teclado
         folioInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') verifyBtn.click();
         });
