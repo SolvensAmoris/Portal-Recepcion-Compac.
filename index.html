@@ -3,203 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Recepción Inteligente | Integración Compac</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Validador de Credenciales | 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-corporate: #0a0e17;
-            --panel-bg: #111827;
-            --accent-blue: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.3);
-            --text-main: #f3f4f6;
-            --text-dim: #9ca3af;
-            --border-line: #374151;
+            --bg-dark: #030005;
+            --gold-solid: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.2);
+            --red-seal: #8b0000;
+            --text-light: #e2e8f0;
+            --text-dim: #94a3b8;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-corporate);
-            color: var(--text-main);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            background-image: radial-gradient(circle at 50% 0%, #1a0b2e 0%, transparent 50%);
         }
 
-        .dashboard-container {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-line);
-            border-radius: 12px;
+        .validator-box {
+            background: rgba(10, 5, 15, 0.85);
+            border: 1px solid var(--gold-solid);
+            border-radius: 4px;
             width: 100%;
-            max-width: 500px;
-            padding: 40px 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .header { text-align: center; margin-bottom: 30px; }
-        .logo-icon { font-size: 2.5rem; color: var(--accent-blue); margin-bottom: 10px; }
-        .title { font-size: 1.5rem; font-weight: 600; margin-bottom: 5px; letter-spacing: 1px; }
-        .subtitle { font-size: 0.85rem; color: var(--text-dim); }
-
-        /* Zona de Carga (Drag & Drop) */
-        .upload-zone {
-            border: 2px dashed var(--border-line);
-            border-radius: 8px;
-            padding: 40px 20px;
+            max-width: 600px;
+            padding: 50px 40px;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(17, 24, 39, 0.5);
-            margin-bottom: 20px;
+            box-shadow: 0 0 40px var(--gold-glow);
+            position: relative;
         }
 
-        .upload-zone:hover {
-            border-color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.05);
-        }
+        .seal-icon { font-size: 3rem; margin-bottom: 15px; color: var(--gold-solid); filter: drop-shadow(0 0 10px var(--gold-solid)); }
+        .title { font-family: 'Cinzel Decorative', serif; font-size: 2rem; color: var(--gold-solid); margin-bottom: 5px; }
+        .subtitle { font-family: 'Cinzel', serif; font-size: 0.9rem; letter-spacing: 4px; color: var(--text-dim); margin-bottom: 30px; }
 
-        .upload-icon { font-size: 2rem; color: var(--text-dim); margin-bottom: 15px; transition: 0.3s; }
-        .upload-zone:hover .upload-icon { color: var(--accent-blue); }
-        .upload-text { font-size: 0.9rem; margin-bottom: 5px; }
-        .upload-subtext { font-size: 0.75rem; color: var(--text-dim); }
-        
-        #fileInput { display: none; }
-
-        /* Botón de Acción */
-        .btn-submit {
-            width: 100%;
-            background: var(--accent-blue);
-            color: #fff;
-            border: none;
-            padding: 15px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
+        .search-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
         }
 
-        .btn-submit:hover { background: #2563eb; box-shadow: 0 0 15px var(--accent-glow); }
-        .btn-submit:disabled { background: var(--border-line); cursor: not-allowed; box-shadow: none; }
-
-        /* Panel de Resultados (Simulación de IA) */
-        .processing-panel { display: none; margin-top: 25px; text-align: left; }
-        .status-text { font-size: 0.85rem; color: var(--accent-blue); margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        
-        .data-table {
+        .folio-input {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
             background: #000;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid var(--border-line);
+            border: 1px dashed var(--text-dim);
+            color: var(--gold-solid);
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            padding: 18px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            outline: none;
+            transition: all 0.3s;
         }
-        .data-table th, .data-table td { padding: 12px; border-bottom: 1px solid var(--border-line); text-align: left; }
-        .data-table th { color: var(--text-dim); font-weight: 400; width: 40%; }
-        .data-table td { font-family: monospace; color: #fff; }
-        
-        .success-msg { color: #10b981; font-size: 0.85rem; margin-top: 15px; display: none; text-align: center; }
 
-        footer { text-align: center; margin-top: 30px; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 1px; }
+        .folio-input:focus {
+            border-color: var(--gold-solid);
+            box-shadow: inset 0 0 15px var(--gold-glow);
+        }
+
+        .btn-verify {
+            background: transparent;
+            border: 1px solid var(--gold-solid);
+            color: var(--gold-solid);
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 18px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        .btn-verify:hover {
+            background: var(--gold-glow);
+        }
+
+        /* Resultados */
+        .result-panel {
+            display: none;
+            border-top: 1px solid var(--text-dim);
+            padding-top: 30px;
+            margin-top: 20px;
+            text-align: left;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: var(--red-seal);
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            padding: 5px 12px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .status-badge.valid { background: #0f5132; border: 1px solid #198754; }
+
+        .data-row { margin-bottom: 12px; }
+        .data-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+        .data-value { font-family: 'Cinzel', serif; font-size: 1.2rem; color: #fff; }
+
+        .error-msg {
+            color: #dc3545;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            display: none;
+        }
+
+        footer { text-align: center; margin-top: 40px; }
+        .copyright { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <div class="header">
-            <i class="fa-solid fa-microchip logo-icon"></i>
-            <h1 class="title">Captura Automática</h1>
-            <p class="subtitle">Motor OCR • Sincronización Compac</p>
+    <div class="validator-box">
+        <div class="seal-icon">⚖️</div>
+        <h1 class="title">𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘</h1>
+        <p class="subtitle">REGISTRO GLOBAL DE INVESTIGADORES</p>
+
+        <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 25px;">
+            Ingrese el número de folio oficial para verificar la autenticidad y el grado de la credencial internacional.
+        </p>
+
+        <div class="search-container">
+            <input type="text" id="folioInput" class="folio-input" placeholder="SA-XXXX-000" autocomplete="off">
+            <button id="verifyBtn" class="btn-verify">INICIAR BÚSQUEDA EN LA MATRIZ</button>
         </div>
 
-        <div class="upload-zone" id="dropZone">
-            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-            <p class="upload-text">Toca para tomar foto del ticket</p>
-            <p class="upload-subtext">JPG, PNG o PDF. Resolución máxima 5MB.</p>
-            <input type="file" id="fileInput" accept="image/*,application/pdf">
-        </div>
+        <div id="errorMsg" class="error-msg">❌ El folio ingresado no existe en los registros o ha sido revocado.</div>
 
-        <button id="uploadBtn" class="btn-submit" disabled>
-            <i class="fa-solid fa-bolt"></i> PROCESAR DOCUMENTO
-        </button>
-
-        <div id="processingPanel" class="processing-panel">
-            <div class="status-text">
-                <i class="fa-solid fa-circle-notch fa-spin"></i> Extrayendo datos con Inteligencia Artificial...
+        <div id="resultPanel" class="result-panel">
+            <div id="badgeStatus" class="status-badge valid">CREDENCIAL ACTIVA</div>
+            
+            <div class="data-row">
+                <span class="data-label">Investigador Certificado</span>
+                <span id="resName" class="data-value">...</span>
             </div>
-            <table class="data-table" id="dataTable" style="display: none;">
-                <tr><th>Emisor RFC</th><td id="resRfc">...</td></tr>
-                <tr><th>Fecha</th><td id="resDate">...</td></tr>
-                <tr><th>Subtotal</th><td id="resSub">...</td></tr>
-                <tr><th>IVA (16%)</th><td id="resIva">...</td></tr>
-                <tr><th>Total</th><td id="resTotal" style="color: var(--accent-blue); font-weight: bold;">...</td></tr>
-            </table>
-            <div id="successMsg" class="success-msg">
-                <i class="fa-solid fa-check"></i> Inyectado con éxito a la base de datos Compac
+            
+            <div class="data-row">
+                <span class="data-label">Grado de Especialidad</span>
+                <span id="resGrade" class="data-value" style="color: var(--gold-solid);">...</span>
+            </div>
+
+            <div class="data-row">
+                <span class="data-label">Fecha de Emisión</span>
+                <span id="resDate" class="data-value" style="font-size: 1rem;">...</span>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>INFRAESTRUCTURA CREADA POR 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘</p>
+        <p class="copyright">© 2026 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘. INFRAESTRUCTURA DE VERIFICACIÓN.</p>
     </footer>
 
     <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const processingPanel = document.getElementById('processingPanel');
-        const dataTable = document.getElementById('dataTable');
-        const successMsg = document.getElementById('successMsg');
-        const statusText = document.querySelector('.status-text');
+        // =========================================================
+        // ATENCIÓN: PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
+        // =========================================================
+        const API_URL = "TU_URL_DE_GOOGLE_AQUI";
 
-        // Manejo de carga de archivo
-        dropZone.addEventListener('click', () => fileInput.click());
-        
-        fileInput.addEventListener('change', (e) => {
-            if(e.target.files.length > 0) {
-                dropZone.style.borderColor = 'var(--accent-blue)';
-                document.querySelector('.upload-text').textContent = 'Archivo cargado: ' + e.target.files[0].name;
-                uploadBtn.disabled = false;
+        const verifyBtn = document.getElementById('verifyBtn');
+        const folioInput = document.getElementById('folioInput');
+        const resultPanel = document.getElementById('resultPanel');
+        const errorMsg = document.getElementById('errorMsg');
+
+        verifyBtn.addEventListener('click', async () => {
+            const query = folioInput.value.trim().toUpperCase();
+            if (!query) return;
+            
+            resultPanel.style.display = 'none';
+            errorMsg.style.display = 'none';
+            verifyBtn.textContent = 'CONSULTANDO MATRIZ...';
+            verifyBtn.style.opacity = '0.5';
+
+            try {
+                // Si la URL sigue siendo el texto de ejemplo, mostramos error para que recuerdes cambiarla
+                if(API_URL === "TU_URL_DE_GOOGLE_AQUI") {
+                    alert("Aún necesitas colocar tu URL de Google Apps Script en el código.");
+                    verifyBtn.textContent = 'INICIAR BÚSQUEDA EN LA MATRIZ';
+                    verifyBtn.style.opacity = '1';
+                    return;
+                }
+
+                // Llamada real a tu base de datos en Google Sheets
+                const response = await fetch(`${API_URL}?folio=${query}`);
+                const record = await response.json();
+                
+                if (record.status === "success") {
+                    document.getElementById('resName').textContent = record.name;
+                    document.getElementById('resGrade').textContent = record.grade;
+                    document.getElementById('resDate').textContent = record.date;
+                    resultPanel.style.display = 'block';
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                errorMsg.textContent = "❌ Error de conexión con los servidores centrales.";
+                errorMsg.style.display = 'block';
             }
+
+            verifyBtn.textContent = 'INICIAR BÚSQUEDA EN LA MATRIZ';
+            verifyBtn.style.opacity = '1';
         });
 
-        // Simulación de OCR e Inyección
-        uploadBtn.addEventListener('click', () => {
-            uploadBtn.style.display = 'none';
-            dropZone.style.display = 'none';
-            processingPanel.style.display = 'block';
-
-            // Simular tiempo de lectura de IA
-            setTimeout(() => {
-                statusText.innerHTML = '<i class="fa-solid fa-database"></i> Sincronizando con nodo local Compac...';
-                dataTable.style.display = 'table';
-                
-                // Datos simulados extraídos del ticket
-                document.getElementById('resRfc').textContent = 'XAXX010101000';
-                document.getElementById('resDate').textContent = '28/06/2026';
-                document.getElementById('resSub').textContent = '$ 1,000.00';
-                document.getElementById('resIva').textContent = '$ 160.00';
-                document.getElementById('resTotal').textContent = '$ 1,160.00';
-
-                // Simular inyección a la base de datos local
-                setTimeout(() => {
-                    statusText.style.display = 'none';
-                    successMsg.style.display = 'block';
-                }, 2000);
-
-            }, 2500);
+        // Búsqueda rápida al presionar Enter en el teclado
+        folioInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyBtn.click();
         });
     </script>
 </body>
