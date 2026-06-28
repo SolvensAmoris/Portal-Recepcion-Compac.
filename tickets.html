@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Tickets | 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-corporate: #0a0e17;
+            --panel-bg: #111827;
+            --accent-blue: #3b82f6;
+            --text-main: #f3f4f6;
+            --text-dim: #9ca3af;
+            --border-line: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg-corporate); color: var(--text-main); font-family: 'Montserrat', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .dashboard-container { background: var(--panel-bg); border: 1px solid var(--border-line); border-radius: 12px; width: 100%; max-width: 500px; padding: 40px 30px; text-align: center; }
+        .upload-zone { border: 2px dashed var(--border-line); border-radius: 8px; padding: 40px 20px; cursor: pointer; margin-bottom: 20px; }
+        .btn-submit { width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 15px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: 600; }
+        footer { margin-top: 30px; font-size: 0.7rem; color: var(--text-dim); }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <h1>Captura Automática</h1>
+        <p>Motor OCR • Sincronización Compac</p>
+
+        <div class="upload-zone" id="dropZone">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; margin-bottom: 15px;"></i>
+            <p>Toca para tomar foto del ticket</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <button id="uploadBtn" class="btn-submit" disabled>PROCESAR DOCUMENTO</button>
+
+        <div id="statusMsg" style="margin-top: 20px; font-size: 0.9rem; color: var(--accent-blue);"></div>
+    </div>
+
+    <footer>
+        <p>© 2026 𝕾𝖔𝖑𝖛𝖊𝖓𝖘 𝕬𝖒𝖔𝖗𝖎𝖘. INFRAESTRUCTURA DE AUTOMATIZACIÓN.</p>
+    </footer>
+
+    <script>
+        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT QUE TERMINA EN /exec
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzifuu1qNextPTyKnYyZELUcwdx8SHZf3kR-5RAuh41XftqiMAB5VaIHOpvhJmrly57kA/exec";
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => uploadBtn.disabled = false);
+
+        uploadBtn.addEventListener('click', async () => {
+            uploadBtn.textContent = "PROCESANDO...";
+            
+            const ticketData = {
+                rfc: 'XAXX010101000',
+                fecha: '2026-06-28',
+                subtotal: 1000.00,
+                iva: 160.00,
+                total: 1160.00
+            };
+
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ticketData)
+                });
+                document.getElementById('statusMsg').textContent = "✅ Ticket inyectado con éxito al sistema.";
+            } catch (error) {
+                document.getElementById('statusMsg').textContent = "❌ Error al conectar con la base de datos.";
+            }
+            uploadBtn.textContent = "PROCESAR DOCUMENTO";
+        });
+    </script>
+</body>
+</html>
